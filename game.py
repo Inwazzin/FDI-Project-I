@@ -3,7 +3,6 @@ from game_objects.atom import Atom
 from engine import Engine
 from imports import *
 
-
 class Game(object):
     def __init__(self):
         # Engine Variables

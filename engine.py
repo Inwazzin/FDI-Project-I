@@ -20,8 +20,10 @@ class Engine(object):
         # m = 1
 
         # Collision : 2R < |pos_i - pos_j| <= 2R + d
-        # 0 <= d <= R/10
+        # 0 <= d <= R/10 -> tutaj chyba mamy sobie wybrać to d, on dał tylko warunek
+        # mozemy eksperymentowac z tym wsm
         # Maciej stuff
+
         # Time :
         # Ania stuff
 
