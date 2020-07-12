@@ -55,9 +55,17 @@ class Game(object):
                 self.is_running = False
 
     def __update(self):
-        for atom in self.atoms:
-            atom.update(self.phys.global_angle)
+        self.phys.update_dt()
+
         self.atom_container.update(self.phys.eta_h, self.phys.eta_l, self.phys.R)
+        for atom in self.atoms:
+            atom.update(self.phys.global_angle, self.phys.dt)
+
+        self.__update_colission()
+
+    def __update_colission(self):
+        for i in range(len(self.atoms)):
+            self.atoms[i].update_collision(self.atoms[:i]+self.atoms[i+1:], self.atom_container)
 
     def __render(self):
         self.screen.fill(self.color_background)

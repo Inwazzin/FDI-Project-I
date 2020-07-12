@@ -35,6 +35,7 @@ class Engine(object):
         self.tolerance: float = d       # Atom Collision Tolerance coefficient
         self.global_angle: int = 0
         self.clock: pg.time.Clock = pg.time.Clock()
+        self.dt: float = 0
 
-    def delta_time(self):
+    def update_dt(self):
         pass

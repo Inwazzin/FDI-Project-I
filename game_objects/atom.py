@@ -30,6 +30,14 @@ class Atom(object):
         # Maciej(metody) i Ania(czas)
         pass
 
+    def update_collision(self, atoms, container):
+        bool_, wall_ = self.check_collision_container(container)
+        if bool_:
+            self.update_collision_wall_velocities(wall_)
+        for atom in atoms:
+            if self.is_collision_atom(atom):
+                self.update_collision_atom_velocities(atom)
+
     # a ja bede biadloc po polsku - Maciek
     def get_collision_vector(self, other: pg.Vector2) -> pg.Vector2:  # dwie kulki - zwraca wektor miedzy nimi
         return pg.Vector2(other.pos.x - self.pos.x, other.pos.y - self.pos.y)
@@ -74,10 +82,11 @@ class Atom(object):
     #ZDERZENIA
     # dla pary kulek sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
     def is_collision_atom(self, other):
-        return 2 * self.radius < self.get_collision_vector(other) <= 2 * self.radius + self.tolerance
+        vec = self.get_collision_vector(other)
+        return 2 * self.radius < vec.length() <= 2 * self.radius + self.tolerance
 
     # dla pary kulka, kontener sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
-    def check_collision_wall(self, container: AtomContainer) -> Tuple[bool, str]:
+    def check_collision_container(self, container: AtomContainer) -> Tuple[bool, str]:
         if self.pos.x + self.radius - self.tolerance >= container.border_right:
             return True, 'E'
         elif self.pos.x - self.radius + self.tolerance <= container.border_left:
