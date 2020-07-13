@@ -3,8 +3,8 @@ from imports import *
 class Engine(object):
     def __init__(self,
                  R: int,
-                 V: float,
-                 d: float,
+                 V: float = 2,
+                 d: float = 0.1,
                  eta_h: float = 20,
                  eta_l: float = 20):
 
@@ -24,9 +24,6 @@ class Engine(object):
         # mozemy eksperymentowac z tym wsm
         # Maciej stuff
 
-        # Time :
-        # Ania stuff
-
         # init physic engine variables
         self.R: int = R                 # Radius of the atoms Experimental range := 12 >= R >= 1
         self.V: float = V               # Max Speed of the atoms
@@ -35,7 +32,18 @@ class Engine(object):
         self.tolerance: float = d       # Atom Collision Tolerance coefficient
         self.global_angle: int = 0
         self.clock: pg.time.Clock = pg.time.Clock()
+
+        # Time :
+        # Ania stuff - Ania tyż po polszku pisze c:
+        self.i: int = 0                                         # stala do klatek
+        self.dt_coefficient: float = 1 / (self.eta_h * self.V)  # eta_h i eta_l sa rowne, wiec obie stanowia minimum
         self.dt: float = 0
+        self.discrete_dt: int = round(self.i * self.dt)          # czas dyskretny - liczba calkowita
+        self.refresh_rate: int = 60
 
     def update_dt(self):
-        pass
+        self.dt = self.clock.tick(self.refresh_rate)
+
+    def update_time(self):
+        self.i += 1
+        self.discrete_dt = self.dt_coefficient*self.dt

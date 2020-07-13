@@ -2,12 +2,13 @@ from imports import *
 from game_objects.atom_container import *
 from engine import *
 
+
 class Atom(object):
     def __init__(self,
                  radius: int = 50,
                  color: Tuple[int, int, int] = (255, 255, 255),
                  pos: Tuple[float, float] = (0.0, 0.0),
-                 velocity: Tuple[float, float] = (0.0, 0.0),
+                 velocity: Tuple[float, float] = (2.0, 2.0),
                  local_angle: int = 0,
                  tolerance: float = -1,
                  mass: int = 1):
@@ -19,7 +20,7 @@ class Atom(object):
         self.radius: float = radius
         self.mass: int = mass
         self.local_angle: float = local_angle
-        self.tolerance: float = self.radius/10 if tolerance == -1 else tolerance
+        self.tolerance: float = self.radius / 10 if tolerance == -1 else tolerance
 
         # Vectors
         self.pos: pg.Vector2 = pg.Vector2(pos)
@@ -29,6 +30,10 @@ class Atom(object):
 
         # Maciej(metody) i Ania(czas)
         pass
+
+    def update_movement(self, discrete_dt: float):
+        self.pos.x = self.pos.x + self.velocity.x * discrete_dt
+        self.pos.y = self.pos.y + self.velocity.y * discrete_dt
 
     def update_collision(self, atoms, container):
         bool_, wall_ = self.check_collision_container(container)
@@ -42,13 +47,13 @@ class Atom(object):
     def get_collision_vector(self, other: pg.Vector2) -> pg.Vector2:  # dwie kulki - zwraca wektor miedzy nimi
         return pg.Vector2(other.pos.x - self.pos.x, other.pos.y - self.pos.y)
 
-    def get_cosine(self, vector: pg.Vector2) -> float:  # kulka i wektor miedzy kulkami -> kat miedzy predkoscia a wektorem
+    def get_cosine(self,
+                   vector: pg.Vector2) -> float:  # kulka i wektor miedzy kulkami -> kat miedzy predkoscia a wektorem
         return (vector.x
                 * self.velocity.x
                 + vector.y
                 * self.velocity.y) / (
-                       mh.sqrt(self.velocity.x ** 2 + self.velocity.y ** 2)
-                       + mh.sqrt(vector.x ** 2 + vector.y ** 2))
+                       mh.sqrt(self.velocity.x**2+self.velocity.y**2) + mh.sqrt(vector.x**2+vector.y**2))
 
     # update_collision_velocities
     def update_collision_atom_velocities(self, other):  # tutaj chyba nie trzeba tlumaczyc za wiele
@@ -58,6 +63,8 @@ class Atom(object):
 
         # Obliczenia
         self_vel_y: pg.Vector2 = self.velocity * cos1
+        print(1 - cos1 ** 2)
+        print(other.velocity * mh.sqrt(1 - cos2 ** 2))
         self_vel_x: pg.Vector2 = self.velocity * mh.sqrt(1 - cos1 ** 2)
         other_vel_y: pg.Vector2 = other.velocity * cos2
         other_vel_x: pg.Vector2 = other.velocity * mh.sqrt(1 - cos2 ** 2)
@@ -79,20 +86,20 @@ class Atom(object):
         gfxdraw.aacircle(screen, int(self.pos.x), int(self.pos.y), int(self.radius), self.color)
         gfxdraw.filled_circle(screen, int(self.pos.x), int(self.pos.y), int(self.radius), self.color)
 
-    #ZDERZENIA
+    # ZDERZENIA
     # dla pary kulek sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
     def is_collision_atom(self, other):
         vec = self.get_collision_vector(other)
-        return 2 * self.radius < vec.length() <= 2 * self.radius + self.tolerance
+        return 2 * self.radius < vec.length() <= (2 + self.tolerance) * self.radius
 
     # dla pary kulka, kontener sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
     def check_collision_container(self, container: AtomContainer) -> Tuple[bool, str]:
-        if self.pos.x + self.radius - self.tolerance >= container.border_right:
+        if self.pos.x + (1 + self.tolerance) * self.radius >= container.border_right:
             return True, 'E'
-        elif self.pos.x - self.radius + self.tolerance <= container.border_left:
+        elif self.pos.x - (1 + self.tolerance) * self.radius <= container.border_left:
             return True, 'W'
-        elif self.pos.y + self.radius - self.tolerance >= container.border_down:
+        elif self.pos.y + (1 + self.tolerance) * self.radius >= container.border_down:
             return True, 'S'
-        elif self.pos.y - self.radius + self.tolerance <= container.border_up:
+        elif self.pos.y - (1 + self.tolerance) * self.radius <= container.border_up:
             return True, 'N'
         return False, ''

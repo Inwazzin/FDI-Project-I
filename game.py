@@ -7,7 +7,7 @@ class Game(object):
     def __init__(self):
         # Engine Variables
         self.is_running: bool = True
-        self.phys = Engine(12, 2.0, 0.1, 50, 50)    # R, V, d, eta_h, eta_l
+        self.phys = Engine(12, 2.0, 0.001, 50, 50)    # R, V, d, eta_h, eta_l
 
         # Game Colors
         # Tutaj są tuple zamiast pg.Color z powodu ograniczeń silnika
@@ -34,11 +34,11 @@ class Game(object):
     def init_game_object(self):
         # Should create N = (eta_l*eta_h)/4 atoms inside the container boundaries
         # For now it is makeshift
-        new_atom = Atom(self.phys.R, self.color_blue, (100, 100), (0, 0), 0, 1)
+        new_atom = Atom(self.phys.R, self.color_blue, (100, 100), (20, 20), 0, 1)
         self.atoms.append(new_atom)
-        new_atom = Atom(self.phys.R, self.color_red, (200, 100), (0, 0), 0, 1)
+        new_atom = Atom(self.phys.R, self.color_red, (200, 100), (20, 20), 0, 1)
         self.atoms.append(new_atom)
-        new_atom = Atom(self.phys.R, self.color_neutral, (300, 100), (0, 0), 0, 1)
+        new_atom = Atom(self.phys.R, self.color_neutral, (300, 100), (5, 7), 0, 1)
         self.atoms.append(new_atom)
         self.atom_container = AtomContainer((30, 30), self.color_neutral)
 
@@ -55,15 +55,19 @@ class Game(object):
                 self.is_running = False
 
     def __update(self):
+        # Update czasu
         self.phys.update_dt()
+        self.phys.update_time()
+        print("Discrete time: ", self.phys.dt, self.phys.discrete_dt)
 
         self.atom_container.update(self.phys.eta_h, self.phys.eta_l, self.phys.R)
         for atom in self.atoms:
-            atom.update(self.phys.global_angle, self.phys.dt)
+            #  atom.update(self.phys.global_angle, self.phys.dt)
+            atom.update_movement(self.phys.discrete_dt)
 
-        self.__update_colission()
+        self.__update_collision()
 
-    def __update_colission(self):
+    def __update_collision(self):
         for i in range(len(self.atoms)):
             self.atoms[i].update_collision(self.atoms[:i]+self.atoms[i+1:], self.atom_container)
 
