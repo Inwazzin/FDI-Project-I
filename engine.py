@@ -1,5 +1,6 @@
 from imports import *
 
+
 class Engine(object):
     def __init__(self,
                  R: int,
@@ -7,7 +8,6 @@ class Engine(object):
                  d: float = 0.1,
                  eta_h: float = 20,
                  eta_l: float = 20):
-
         # Mechanics
         # R - Radius    | H - Container Height = EtaH*R | L - Container Width = EtaL*R
         # 12>= R >= 1
@@ -25,25 +25,31 @@ class Engine(object):
         # Maciej stuff
 
         # init physic engine variables
-        self.R: int = R                 # Radius of the atoms Experimental range := 12 >= R >= 1
-        self.V: float = V               # Max Speed of the atoms
-        self.eta_h: float = eta_h       # Container Height coefficient Experimental range := 50>=eta_h>=20
-        self.eta_l: float = eta_l       # Container Width coefficient (Height should == Width)
-        self.tolerance: float = d       # Atom Collision Tolerance coefficient
+        self.R: int = R  # Radius of the atoms Experimental range := 12 >= R >= 1
+        self.V: float = V  # Max Speed of the atoms
+        self.eta_h: float = eta_h  # Container Height coefficient Experimental range := 50>=eta_h>=20
+        self.eta_l: float = eta_l  # Container Width coefficient (Height should == Width)
+        self.tolerance: float = d  # Atom Collision Tolerance coefficient
         self.global_angle: int = 0
+
         self.clock: pg.time.Clock = pg.time.Clock()
+        self.refresh_rate: int = 60
 
         # Time :
         # Ania stuff - Ania tyż po polszku pisze c:
-        self.i: int = 0                                         # stala do klatek
-        self.dt_coefficient: float = 1 / (self.eta_h * self.V)  # eta_h i eta_l sa rowne, wiec obie stanowia minimum
-        self.dt: float = 0
-        self.discrete_dt: int = round(self.i * self.dt)          # czas dyskretny - liczba calkowita
-        self.refresh_rate: int = 60
+        self.i: int = 0  # stala do klatek
 
-    def update_dt(self):
+        # eta_h i eta_l sa rowne, wiec obie stanowia minimum
+        self.dt_coefficient: float = 1 / (self.eta_h * self.V)
+        self.dt: float = 0
+        # czas dyskretny - liczba calkowita
+        self.discrete_dt: int = 0
+
+    def __update_dt(self):
         self.dt = self.clock.tick(self.refresh_rate)
 
     def update_time(self):
+        self.__update_dt()
         self.i += 1
-        self.discrete_dt = self.dt_coefficient*self.dt
+        self.discrete_dt = self.dt_coefficient * self.dt
+

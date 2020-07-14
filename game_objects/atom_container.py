@@ -3,7 +3,7 @@ from imports import *
 class AtomContainer(object):
     def __init__(self,
                  offset: Tuple[float, float],
-                 color: Tuple[int, int, int]):
+                 color: pg.Color):
         print("Debug Create Container:", offset, color)
         # Init Private Const Container Variables
         self.__offset_initial = pg.Vector2(offset)    # offset from the border of the screen
@@ -38,17 +38,17 @@ class AtomContainer(object):
     def __update_wall(self):
         wall_up = (
             (int(self.__offset_initial.x), int(self.__offset_initial.y)),
-            (self.__height+self.__width, self.__width))
+            (self.__height, self.__width))
         wall_down = (
-            (int(self.__offset_initial.x)+self.__width, int(self.__offset_initial.y)+self.__height+self.__width),
-            (self.__height+self.__width, self.__width))
+            (int(self.__offset_initial.x+self.__width), int(self.__offset_initial.y)+self.__height),
+            (self.__height, self.__width))
         wall_left = (
             (int(self.__offset_initial.x), int(self.__offset_initial.y)+self.__width),
-            (self.__width, self.__height+self.__width))
+            (self.__width, self.__height))
         wall_right = (
-            (int(self.__offset_initial.x)+self.__height+self.__width, int(self.__offset_initial.y)),
-            (self.__width, self.__height+self.__width))
-        self.walls: list = [wall_up, wall_down, wall_left, wall_right]
+            (int(self.__offset_initial.x)+self.__height, int(self.__offset_initial.y)),
+            (self.__width, self.__height))
+        self.__walls: list = [wall_up, wall_down, wall_left, wall_right]
 
     def update(self, eta_h: float, eta_l, radius: int):
         # eta_l is useless due to exercises' constraints
@@ -56,13 +56,5 @@ class AtomContainer(object):
         self.__update_wall()
 
     def render(self, screen: pg.Surface):
-        for wall in self.walls:
+        for wall in self.__walls:
             gfxdraw.box(screen, wall, self.__color)
-
-    @property
-    def offset_x(self):
-        return self.__offset_initial.x+self.__width+self.__height
-
-    @property
-    def offset_y(self):
-        return self.__offset_initial.y+self.__width
