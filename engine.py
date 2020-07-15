@@ -24,7 +24,7 @@ class Engine(object):
         # mozemy eksperymentowac z tym wsm
         # Maciej stuff
 
-        # init physic engine variables
+        # Init Engine Variables
         self.R: int = R  # Radius of the atoms Experimental range := 12 >= R >= 1
         self.V: float = V  # Max Speed of the atoms
         self.eta_h: float = eta_h  # Container Height coefficient Experimental range := 50>=eta_h>=20
@@ -35,7 +35,7 @@ class Engine(object):
         self.clock: pg.time.Clock = pg.time.Clock()
         self.refresh_rate: int = 60
 
-        # Time :
+        # Time Variables
         # Ania stuff - Ania tyż po polszku pisze c:
         self.i: int = 0  # stala do klatek
 

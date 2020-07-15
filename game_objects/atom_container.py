@@ -2,13 +2,15 @@ from imports import *
 
 class AtomContainer(object):
     def __init__(self,
-                 offset: Tuple[float, float],
+                 offset: pg.Vector2,
                  color: pg.Color):
         print("Debug Create Container:", offset, color)
         # Init Private Const Container Variables
-        self.__offset_initial = pg.Vector2(offset)    # offset from the border of the screen
         self.__color = color
-        self.__width: int = 10              # Private Const Width of the wall
+        # offset from the border of the screen
+        # Private Const Width of the wall
+        self.__width: int = 10
+        self.__offset_initial = offset - pg.Vector2(self.__width, self.__width)
 
         # Init Dummy Public Variables
         self.H: int = 0                     # Height Inside the container
