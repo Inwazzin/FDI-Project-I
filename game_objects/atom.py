@@ -2,6 +2,7 @@ from imports import *
 from game_objects.atom_container import *
 from engine import *
 
+
 class Atom(object):
     def __init__(self,
                  radius: int = 50,
@@ -50,28 +51,8 @@ class Atom(object):
             self.velocity, other.velocity = self.__find_new_velocity(other), other.__find_new_velocity(self)
             print(self.velocity, other.velocity)
 
-    # wariant - znak wielka litera, czy od North, South, etc...
-    def update_collision_wall(self, container):
-        if (walls := list(self.__find_collision_walls(container))) and self.is_collision_time():
-            for wall in walls:
-                if wall in 'NS':
-                    self.velocity.y *= -1
-                elif wall in 'WE':
-                    self.velocity.x *= -1
+        # dla pary kulka, kontener sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
 
-    # ZDERZENIA
-    # dla pary kulek sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
-    def is_collision_time(self):
-        if self.__collision_time >= self.__max_collision_time:
-            self.__collision_time = 0
-            return True
-        return False
-
-    def __is_collision_atom(self, other):
-        return self.pos.distance_to(other.pos) <= 2 * self.radius + self.tolerance
-        # return 2 * self.radius < self.pos.distance_to(other.pos) <= 2 * self.radius + self.tolerance
-
-    # dla pary kulka, kontener sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
     def __find_collision_walls(self, container: AtomContainer) -> str:
         if self.pos.x + self.radius > container.border_right:
             yield 'E'
@@ -82,6 +63,35 @@ class Atom(object):
             yield 'S'
         elif self.pos.y - self.radius < container.border_up:
             yield 'N'
+
+    # wariant - znak wielka litera, czy od North, South, etc...
+    def update_collision_wall(self, container):
+        walls = list(self.__find_collision_walls(container))
+        for wall in walls:
+            if wall == 'N':
+                self.velocity.y *= -1
+                self.pos.y += self.radius/8
+            elif wall == 'S':
+                self.velocity.y *= -1
+                self.pos.y -= self.radius/8
+            elif wall == 'W':
+                self.velocity.x *= -1
+                self.pos.x += self.radius/8
+            elif wall == 'E':
+                self.velocity.x *= -1
+                self.pos.x -= self.radius/8
+
+    # ZDERZENIA
+    # dla pary kulek sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
+    def is_collision_time(self):
+        if self.__collision_time >= self.__max_collision_time:
+            self.__collision_time = 0
+            return True
+        return False
+
+    def __is_collision_atom(self, other):
+        return  self.pos.distance_to(other.pos) <= 2 * self.radius + self.tolerance
+        #return 2 * self.radius < self.pos.distance_to(other.pos) <= 2 * self.radius + self.tolerance
 
     def __find_new_velocity(self, other: 'Atom') -> pg.Vector2:
         # v1' = v1 - (((2*m2) / (m1+m2)) * ((<v1-v2, x1-x2>) / (||x1-x2||^2)) * (x1 - x2))
@@ -94,5 +104,5 @@ class Atom(object):
         #            * pos_diff))
 
     def render(self, screen: pg.Surface):
-        #gfxdraw.filled_circle(screen, int(self.pos.x), int(self.pos.y), int(self.radius), self.current_color)
+        # gfxdraw.filled_circle(screen, int(self.pos.x), int(self.pos.y), int(self.radius), self.current_color)
         gfxdraw.aacircle(screen, int(self.pos.x), int(self.pos.y), int(self.radius), self.current_color)

@@ -4,10 +4,12 @@ from engine import Engine
 from imports import *
 
 class Game(object):
-    def __init__(self):
+    def __init__(self, R,N,  eta_h, eta_l, V):
         # Simulation Variables
+        self.N = N
+        self.V = V
         self.is_running: bool = True
-        self.phys: Engine = Engine(30, 2.0, 0.1, 20, 20)  # R, V, d, eta_h, eta_l
+        self.phys: Engine = Engine(R, V, 0.1, eta_h, eta_l)  # R, V, d, eta_h, eta_l
         self.offset_pos: pg.Vector2 = pg.Vector2(40, 40)
 
         # Game Colors
@@ -26,6 +28,18 @@ class Game(object):
         # Init Dummy Game Variables
         self.atoms: List[Atom] = []
         self.atom_container: AtomContainer = AtomContainer(self.offset_pos, pg.Color(0, 0, 0))
+        #button
+
+        self.button = pw.Button(
+            self.screen, 595, 655, 200, 40, text='Zakończ symulację',
+            font=pg.font.Font('PatrickHandSC-Regular.ttf', 20),
+            textColour = (255,255,255),
+            fontSize=20, margin=15,
+            inactiveColour=(238, 32, 77),
+            pressedColour=(0, 0, 0), radius=5,
+            onClick=lambda: (
+            print("Click!"), pg.display.quit(), sys.exit())) #Tutaj trzeba dodać obsługę wyświetlenia okna z wykonanymi pomiarami
+
         # Game Init
 
         pg.init()
@@ -35,69 +49,33 @@ class Game(object):
         self.__game_loop()
 
     def __init_game_object(self):
-        N: int = int((self.phys.eta_l*self.phys.eta_h)/4)
+        N = self.N
         self.atom_container: AtomContainer = AtomContainer(self.offset_pos, self.color_neutral)
         self.atom_container.update(self.phys.eta_h, self.phys.eta_l, self.phys.R)
         print(f"should create {N} atoms")
-        while N:
-            N -= 1
 
         # Should create N = (eta_l*eta_h)/4 atoms inside the container boundaries
         # For now it is makeshift
 
-        # Test Atom-Wall Collision
-        # new_atom = Atom(self.phys.R, self.color_red, (50, 50), (20, 20), 0, 1)
-        # self.atoms.append(new_atom)
 
-        # # Test Atom-Atom Collision Random
-        # new_atom = Atom(self.phys.R, self.color_blue, (150, 150), (-20, -15), 0, self.phys.tolerance)
-        # self.atoms.append(new_atom)
-        # new_atom = Atom(self.phys.R, self.color_neutral, (420, 220), (20, 0), 0, self.phys.tolerance)
-        # self.atoms.append(new_atom)
-
-        # Test Atom-Atom Collision X-Axis
-        #  new_atom = Atom(self.phys.R, self.color_blue, (80, 240), (-20, 0), 0, self.phys.tolerance)
-        #  self.atoms.append(new_atom)
-        #  new_atom = Atom(self.phys.R, self.color_neutral, (420, 220), (20, 0), 0, self.phys.tolerance)
-        #  self.atoms.append(new_atom)
         spawn_limit_inferior = pg.Vector2(self.offset_pos.x + self.phys.R, self.offset_pos.y + self.phys.R)
-        spawn_limit_superior = \
-            spawn_limit_inferior \
-            + pg.Vector2(self.atom_container.border_down - self.phys.R, self.atom_container.border_right - self.phys.R)
-        print(spawn_limit_superior, spawn_limit_inferior)
-        # # Test Atom-Atom Collision Y-Axis
-        new_atom = Atom(self.phys.R,
+        spawn_limit_superior = pg.Vector2(self.atom_container.border_down - self.phys.R, self.atom_container.border_right - self.phys.R)
+        x = spawn_limit_inferior.x + self.phys.R
+        y = spawn_limit_inferior.y + self.phys.R
+        for i in range(N):
+            v_x = random.random() * self.V
+            v_y = random.random() * self.V
+            x += self.phys.R * 2.25
+            if x + 1.1*self.phys.R >= spawn_limit_superior.x:
+                x = spawn_limit_inferior.x + self.phys.R
+                y += self.phys.R * 2.25
+            new_atom = Atom(self.phys.R,
                         self.color_blue,
-                        (40+self.phys.R, 40+self.phys.R),
-                        (3, 3),
+                        (x, y),
+                        (v_x, v_y),
                         0,
                         self.phys.tolerance)
-        self.atoms.append(new_atom)
-
-        # new_atom = Atom(self.phys.R,
-        #                 self.color_neutral,
-        #                 (640-self.phys.R, 640-self.phys.R),
-        #                 (-3, -3),
-        #                 0,
-        #                 self.phys.tolerance)
-        # self.atoms.append(new_atom)
-
-        # # Test Atom-Atom Collision Y-Axis
-        # new_atom = Atom(self.phys.R,
-        #                 self.color_blue,
-        #                 (640-self.phys.R, 40+self.phys.R),
-        #                 (-3, 3),
-        #                 0,
-        #                 self.phys.tolerance)
-        # self.atoms.append(new_atom)
-
-        new_atom = Atom(self.phys.R,
-                        self.color_neutral,
-                        (40+self.phys.R, 640-self.phys.R),
-                        (3, -3),
-                        0,
-                        self.phys.tolerance)
-        self.atoms.append(new_atom)
+            self.atoms.append(new_atom)
 
     def __game_loop(self):
         while self.is_running:
@@ -107,7 +85,9 @@ class Game(object):
             self.__render()
 
     def __handle_events(self):
-        for event in pg.event.get():
+        events = pg.event.get()
+        for event in events:
+            self.button.listen(events)
             if event.type == pg.QUIT:
                 self.is_running = False
 
@@ -143,6 +123,7 @@ class Game(object):
 
     def __render(self):
         self.screen.fill(self.color_background)
+        self.button.draw()
         for atom in self.atoms:
             atom.render(self.screen)
 
