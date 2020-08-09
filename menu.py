@@ -1,7 +1,15 @@
-from imports import *
 from game_objects.text_object import TextObject
-from resources.color_palette import Palette
 from game_objects.button import InputButton
+from resources.color_palette import Palette
+from simulation import Simulation
+from imports import *
+
+# Limity można se zmieniać w imię wygody lel‍
+LIMIT_R = 10
+LIMIT_V = 50.0
+LIMIT_ETA_L = 60
+LIMIT_ETA_H = 60
+LIMIT_N = (LIMIT_ETA_L*LIMIT_ETA_H)//16
 
 
 class Menu(object):
@@ -42,13 +50,17 @@ class Menu(object):
         self.__main_loop()
 
     def __init_texts(self):
-        self.buttons['START'] = InputButton(pg.Rect(250, 600, 300, 80), roundness=0.4,
-                                            font_size=40, font_color=self.colors.neutral, str_='Uruchom Symulację')
+        self.texts['WARNING_TEXT'] = TextObject((400, 60),
+                                                'Wymiary Zbiornika:',
+                                                size=self.font_normal_height,
+                                                color=self.colors.neutral)
 
-        self.buttons['EXIT'] = InputButton(pg.Rect(580, 600, 100, 80), roundness=0.4,
-                                           font_size=40, font_color=self.colors.neutral, str_='Wyjdź')
+        self.texts['WARNING_SIZE'] = TextObject((400, 100),
+                                                f'{LIMIT_ETA_H * LIMIT_R} x {LIMIT_ETA_H * LIMIT_R}',
+                                                size=self.font_normal_height,
+                                                color=self.colors.neutral)
 
-        self.texts['MENU_HEADER'] = TextObject((400, 75),
+        self.texts['MENU_HEADER'] = TextObject((400, 20),
                                                'Symulacja cząsteczek gazu doskonałego',
                                                size=self.font_header_height,
                                                style=freetype.STYLE_STRONG,
@@ -85,50 +97,82 @@ class Menu(object):
                                               color=self.colors.neutral)
 
     def __init_buttons(self):
-        # R V H L N
+        self.buttons['START'] = InputButton(pg.Rect(250, 600, 300, 80), roundness=0.4,
+                                            font_size=40, font_color=self.colors.neutral, str_='Uruchom Symulację')
+
+        self.buttons['EXIT'] = InputButton(pg.Rect(580, 600, 100, 80), roundness=0.4,
+                                           font_size=40, font_color=self.colors.neutral, str_='Wyjdź')
+
+        # R V H L N 24 10.0 100 100 0
         self.input_buttons['DATA_R'] = InputButton(pg.Rect(500, 225, 200, 50), self.colors.neutral,
-                                                   self.font_normal_height, 0, self.numbers, 24, 0.4)
+                                                   self.font_normal_height, 0, self.numbers, LIMIT_R, 0.4)
         self.input_buttons['DATA_V'] = InputButton(pg.Rect(500, 300, 200, 50), self.colors.neutral,
-                                                   self.font_normal_height, 0, self.numbers, 10.0, 0.4)
+                                                   self.font_normal_height, 0, self.numbers, LIMIT_V, 0.4)
         self.input_buttons['DATA_ETA_H'] = InputButton(pg.Rect(500, 375, 200, 50), self.colors.neutral,
-                                                       self.font_normal_height, 0, self.numbers, 100, 0.4)
+                                                       self.font_normal_height, 0, self.numbers, LIMIT_ETA_H, 0.4)
         self.input_buttons['DATA_ETA_L'] = InputButton(pg.Rect(500, 450, 200, 50), self.colors.neutral,
-                                                       self.font_normal_height, 0, self.numbers, 100, 0.4)
+                                                       self.font_normal_height, 0, self.numbers, LIMIT_ETA_L, 0.4)
         self.input_buttons['DATA_N'] = InputButton(pg.Rect(500, 525, 200, 50), self.colors.neutral,
-                                                   self.font_normal_height, 0, self.numbers, 0, 0.4)
+                                                   self.font_normal_height, 0, self.numbers, LIMIT_N, 0.4)
 
     def __main_loop(self):
         while self.is_running:
-            # draw_text inits
-
             self.update()
             self.handle_events()
             self.render()
-            # Events
 
     def update(self):
+        self.__update_atom_container_size()
         self.__update_n_limit()
+
+    def __update_atom_container_size(self):
+        radius = self.input_buttons['DATA_R'].get_data()
+        eta_h = self.input_buttons['DATA_ETA_H'].get_data()
+        eta_l = self.input_buttons['DATA_ETA_L'].get_data()
+
+        if radius and eta_l and eta_h:
+            size_x = int(radius) * int(eta_l)
+            size_y = int(radius) * int(eta_h)
+            if size_x > self.display_width or size_y > self.display_height:
+                self.texts['WARNING_TEXT'].set_color(self.colors.red)
+                self.texts['WARNING_SIZE'].set_color(self.colors.red)
+                self.texts['WARNING_TEXT'].set_style(freetype.STYLE_STRONG)
+                self.texts['WARNING_SIZE'].set_style(freetype.STYLE_STRONG)
+            else:
+                self.texts['WARNING_TEXT'].set_color(self.colors.neutral)
+                self.texts['WARNING_SIZE'].set_color(self.colors.neutral)
+                self.texts['WARNING_TEXT'].set_style(freetype.STYLE_DEFAULT)
+                self.texts['WARNING_SIZE'].set_style(freetype.STYLE_DEFAULT)
+        else:
+            size_x = 0
+            size_y = 0
+        self.texts['WARNING_SIZE'].set_str(f'{size_x} x {size_y}')
 
     def __update_n_limit(self):
         eta_h = self.input_buttons['DATA_ETA_H'].get_data()
         eta_l = self.input_buttons['DATA_ETA_L'].get_data()
-        self.__N_limit = min(int(eta_h), int(eta_l)) // 4 if eta_h and eta_l else 0
+        self.__N_limit = int(eta_h) * int(eta_l)//16 if eta_h and eta_l else 0
 
         self.input_buttons['DATA_N'].set_number_limit(self.__N_limit)
 
+        if (n := self.input_buttons['DATA_N'].get_data()) and int(n) > self.__N_limit:
+            self.input_buttons['DATA_N'].set_str(str(self.__N_limit))
+
     def handle_events(self):
         events = pg.event.get()
+        self.__handle_buttons(events)
         for event in events:
             # Quit events
             if event.type == pg.QUIT or (event.type == pg.KEYUP and event.key == pg.K_ESCAPE):
                 self.is_running = False
-        self.__handle_buttons(events)
 
         if self.buttons['EXIT'].is_clicked:
-            self.is_running = False
-        if self.buttons['START'].is_clicked:
             pg.display.quit()
-            game.Game(*self.__get_data_from_inputs())
+            exit()
+
+        if self.buttons['START'].is_clicked:
+            Simulation(*self.__get_data_from_inputs())
+            self.__reset()
 
     def __handle_buttons(self, events):
         for button in self.input_buttons.values():
@@ -140,8 +184,6 @@ class Menu(object):
         self.screen.fill(self.colors.background)
         self.__render_texts(self.screen)
         self.__render_buttons(self.screen)
-
-        # self.button.draw()
 
         pg.display.flip()
 
@@ -157,3 +199,10 @@ class Menu(object):
 
     def __get_data_from_inputs(self):
         return [button.get_data() for button in self.input_buttons.values()]
+
+    def __reset(self):
+        for button in self.buttons.values():
+            button.reset()
+
+        for button in self.input_buttons.values():
+            button.reset()

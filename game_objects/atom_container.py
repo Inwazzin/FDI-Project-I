@@ -7,10 +7,11 @@ class AtomContainer(object):
         print("Debug Create Container:", offset, color)
         # Init Private Const Container Variables
         self.__color = color
-        # offset from the border of the screen
+
         # Private Const Width of the wall
         self.__width: int = 10
         self.__offset_initial = offset - pg.Vector2(self.__width, self.__width)
+        # offset from the border of the screen
 
         # Init Dummy Public Variables
         self.H: int = 0                     # Height Inside the container
@@ -52,7 +53,7 @@ class AtomContainer(object):
             (self.__width, self.__height))
         self.__walls: list = [wall_up, wall_down, wall_left, wall_right]
 
-    def update(self, eta_h: float, eta_l, radius: int):
+    def update(self, eta_h: float, eta_l: float, radius: int):
         # eta_l is useless due to exercises' constraints
         self.__update_borders(eta_h, radius)
         self.__update_wall()

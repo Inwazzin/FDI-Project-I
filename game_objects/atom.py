@@ -9,9 +9,11 @@ class Atom(object):
                  color: pg.Color = pg.Color(255, 255, 255, 255),
                  pos: Tuple[float, float] = (0.0, 0.0),
                  velocity: Tuple[float, float] = (2.0, 2.0),
-                 local_angle: int = 0,
-                 tolerance: float = -1,
+                 tolerance: float = 0.1,
                  mass: int = 1):
+
+        # Shape
+        self.shape: pg.Surface = pg.Surface((0, 0))
 
         # Colors
         self.color: pg.Color = color
@@ -20,40 +22,51 @@ class Atom(object):
         # Scalars
         self.radius: float = radius
         self.mass: int = mass
-        self.local_angle: float = local_angle
-        self.tolerance: float = self.radius / 10 if tolerance == -1 else tolerance * self.radius
+        self.tolerance: float = tolerance
 
         print(self.tolerance)
+
         # Timers
-        self.__max_collision_time_atom: float = 10
-        self.__collision_time_atom: float = 0
-        self.__max_collision_time_wall: float = 10
-        self.__collision_time_wall: float = 0
+        self.__collision_timer: float = 0
+
+        # self.__max_collision_time_atom: float = 0
+        # self.__collision_time_atom: float = 0.17
+        # self.__max_collision_time_wall: float = 0.17
+        # self.__collision_time_wall: float = 0.17
 
         # Vectors
         self.pos: pg.Vector2 = pg.Vector2(pos)
         self.velocity: pg.Vector2 = pg.Vector2(velocity)
+        self.init_shape()
 
-        print("Debug Create Atom:", radius, color, pos, velocity, local_angle, mass, self.tolerance)
+        print("Debug Create Atom:", radius, color, pos, velocity, mass, self.tolerance)
 
     def update(self, dt: float):
-        self.__update_collision_time(dt)
+        # self.__update_collision_timer(dt)
+        self.__update_movement(dt)
 
-    def update_movement(self, dt: float):
-        self.pos.x += self.velocity.x * dt
-        self.pos.y += self.velocity.y * dt
+    def __update_movement(self, dt: float):
+        self.pos += self.velocity * dt
 
     def update_collision_atom(self, other: 'Atom'):
         if self.__is_collision_atom(other):
-            # From Wikipedia
+            # From Wikipedia Free Encyclopedia
+
             print('!!!COLLISION!!!')
             print(self.velocity, other.velocity)
             self.velocity, other.velocity = self.__find_new_velocity(other), other.__find_new_velocity(self)
-            print(self.velocity, other.velocity)
 
-    def __update_collision_time(self, dt: float):
-        if self.__collision_time_atom < self.__max_collision_time_atom:
-            self.__collision_time_atom += dt
+            pos_dif = self.pos - other.pos
+            angle = math.atan2(pos_dif.y, pos_dif.x) + 0.5 * math.pi
+
+            overlap = 0.5 * (2 * self.radius * (1 + self.tolerance) - self.pos.distance_to(other.pos) + 1)
+
+            self.pos.x += math.sin(angle) * overlap
+            self.pos.y -= math.cos(angle) * overlap
+            other.pos.x -= math.sin(angle) * overlap
+            other.pos.y += math.cos(angle) * overlap
+
+            print(overlap, self.velocity, other.velocity)
 
     # dla pary kulka, kontener sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
     # wariant - znak wielka litera, czy od North, South, etc...
@@ -73,16 +86,8 @@ class Atom(object):
                 self.velocity.x *= -1
                 self.pos.x -= self.radius / 8
 
-    # ZDERZENIA
-    # dla pary kulek sprawdza czy było zdarzenie -> jesli tak to zwraca True i obsluguje jego mechanike
-    def is_collision_time_atom(self):
-        if self.__collision_time_atom >= self.__max_collision_time_atom:
-            self.__collision_time_atom = 0
-            return True
-        return False
-
     def __is_collision_atom(self, other):
-        return self.pos.distance_to(other.pos) <= 2 * self.radius + self.tolerance
+        return self.pos.distance_to(other.pos) <= (2 + self.tolerance) * self.radius
         # return 2 * self.radius < self.pos.distance_to(other.pos) <= 2 * self.radius + self.tolerance
 
     def __find_new_velocity(self, other: 'Atom') -> pg.Vector2:
@@ -107,5 +112,9 @@ class Atom(object):
             yield 'N'
 
     def render(self, screen: pg.Surface):
-        # gfxdraw.filled_circle(screen, int(self.pos.x), int(self.pos.y), int(self.radius), self.current_color)
-        gfxdraw.aacircle(screen, int(self.pos.x), int(self.pos.y), int(self.radius), self.current_color)
+        screen.blit(self.shape, (self.pos.x - self.radius, self.pos.y - self.radius))
+
+    def init_shape(self):
+        circle = pg.Surface([self.radius * 30] * 2, pg.SRCALPHA)
+        pg.draw.ellipse(circle, self.color, circle.get_rect(), 0)
+        self.shape = pg.transform.smoothscale(circle, [self.radius*2] * 2)

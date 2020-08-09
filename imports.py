@@ -8,6 +8,6 @@ import math as mh
 import itertools as it
 import random
 import pygame_widgets as pw
-import game
+import math
 import sys
 import re

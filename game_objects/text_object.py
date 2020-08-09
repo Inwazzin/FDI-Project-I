@@ -1,5 +1,5 @@
-from imports import *
 from resources.font import Font
+from imports import *
 
 
 class TextObject(object):
@@ -60,6 +60,7 @@ class TextObject(object):
     def set_color(self, color: pg.Color):
         if color != self.__color:
             self.__color = color
+            self.__update_shape()
 
     def get_offset(self):
         return self.__offset
