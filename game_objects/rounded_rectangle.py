@@ -11,7 +11,7 @@ class RoundedRect(object):
 
         self.rect: pg.Rect = pg.Rect(*rect)
         self.pos = self.rect.topleft
-        self.__shape = pg.Surface((200, 300))
+        self.__shape = pg.Surface((0, 0))
         self.__roundness: float = roundness
 
         self.border_up: int = rect.y
